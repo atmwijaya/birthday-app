@@ -135,7 +135,6 @@ function CoverPage({ isVisible, photoSrc, onPhotoChange }) {
                 transition: "transform 0.2s",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
               }}
-              onClick={triggerFileInput}
             >
               📷
             </label>
@@ -620,7 +619,7 @@ export default function MiniBook() {
       };
       reader.readAsDataURL(file);
     }
-    event.target.value = "";
+    e.target.value = "";
   }
 
   const pageComponents = [
