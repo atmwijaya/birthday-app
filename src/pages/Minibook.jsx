@@ -6,7 +6,7 @@ import FloatingDecorations from "../components/floatingDecorations";
 import { useTransition, animated } from "react-spring";
 
 const PERSON_IMAGE =
-  "https://i.pinimg.com/280x280_RS/5d/53/f2/5d53f28e15a6e6af4074463a0af8977a.jpg";
+  "https://instagram.fsrg6-1.fna.fbcdn.net/v/t51.82787-19/638317683_18087974948151682_4689259912109632141_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fsrg6-1.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QGbPmiDS7C335ESErtvo16Lja_yTUdvvZGKsBU_TwFQYxi_VqeKzs9-XxqgBlkl-Kyjll4EftjAgs8IILZOyKTi&_nc_ohc=6ITkOf8XYDcQ7kNvwEgA2DI&_nc_gid=OkxR0PSkQagRX5nxeVb-6Q&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_Afw1JFSVInkRr4n1PvWMbvjyLCExDsIK2-iAg1xf6iXdIw&oe=69C0B0BE&_nc_sid=7a9f4b";
 const PERSON_NAME = "Zanuba Khusnalmuna";
 const SENDER_NAME = "Minionmuuu";
 
@@ -26,13 +26,22 @@ const pageGradients = [
 
 const accentColors = ["#C084FC", "#60A5FA", "#F472B6", "#34D399"];
 
-function CoverPage({ isVisible }) {
+function CoverPage({ isVisible, photoSrc, onPhotoChange }) {
   const [pulse, setPulse] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect (() => {
+    setImageError(false);
+  }, [photoSrc]);
 
   useEffect(() => {
     const t = setInterval(() => setPulse((p) => !p), 2000);
     return () => clearInterval(t);
   }, []);
+
+  const triggerFileInput = () => {
+    document.getElementById("photoInput").click();
+  }
 
   return (
     <BookPage isVisible={isVisible} direction="right">
@@ -78,19 +87,68 @@ function CoverPage({ isVisible }) {
               boxShadow: `0 0 30px rgba(192, 132, 252, 0.5), 0 0 60px rgba(192, 132, 252, 0.2)`,
               position: "relative",
               zIndex: 1,
+              backgroundColor: "#1a0533",
             }}
           >
-            <img
-              src={PERSON_IMAGE}
-              alt={PERSON_NAME}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => {
-                e.target.style.display = "none";
-                e.target.parentNode.innerHTML = `<div style="width:100%;height:100%;background:linear-gradient(135deg,#C084FC,#FB7185);display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🎂</div>`;
-              }}
-            />
+            {!imageError ? (
+                <img
+                  src={photoSrc}
+                  alt={PERSON_NAME}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    background: "linear-gradient(135deg,#C084FC,#FB7185)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "2.5rem",
+                  }}
+                >
+                  🎂
+                </div>
+              )}
           </div>
+
+          {/* Tombol kamera untuk mengganti foto */}
+            <label
+              htmlFor="photoInput"
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                background: "rgba(0,0,0,0.7)",
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                border: "2px solid white",
+                transform: "translate(10%, 10%)",
+                fontSize: "1.2rem",
+                transition: "transform 0.2s",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              }}
+              onClick={triggerFileInput}
+            >
+              📷
+            </label>
         </div>
+
+        {/* Input file tersembunyi */}
+        <input
+          type="file"
+          id="photoInput"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={onPhotoChange}
+        />
 
         {/* Envelope header */}
         <div
@@ -498,6 +556,7 @@ export default function MiniBook() {
   const [appeared, setAppeared] = useState(false);
   const [swipeStart, setSwipeStart] = useState(null);
   const [direction, setDirection] = useState(1);
+  const [photoSrc, setPhotoSrc] = useState(PERSON_IMAGE);
 
   useEffect(() => {
     const t = setTimeout(() => setAppeared(true), 100);
@@ -552,8 +611,25 @@ export default function MiniBook() {
     config: { mass: 1, tension: 200, friction: 25, easing: t => t * (2-t) },
   });
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        setPhotoSrc(loadEvent.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+    event.target.value = "";
+  }
+
   const pageComponents = [
-    <CoverPage isVisible={currentPage === 0} />,
+    <CoverPage 
+      key="cover"
+      isVisible={currentPage === 0}
+      photoSrc={photoSrc}
+      onPhotoChange={handlePhotoChange}
+     />,
     <WishesPage isVisible={currentPage === 1} />,
     <PrayerPage isVisible={currentPage === 2} />,
     <ClosingPage isVisible={currentPage === 3} />,
